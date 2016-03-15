@@ -17,6 +17,7 @@
 import org.scalastyle.sbt.ScalastylePlugin.rawScalastyleSettings
 import sbt._
 import sbt.Keys._
+import sbtassembly.AssemblyPlugin.autoImport._
 import sbtsparkpackage.SparkPackagePlugin.autoImport._
 import scoverage.ScoverageSbtPlugin
 import sbtrelease.ReleasePlugin.autoImport._
@@ -70,8 +71,8 @@ object SparkRedshiftBuild extends Build {
         // conflicts for a majority of users while adding a minor inconvienece (adding one extra
         // depenendecy by hand) for a smaller set of users.
         // We exclude jackson-databind to avoid a conflict with Spark's version (see #104).
-        "com.amazonaws" % "aws-java-sdk-core" % "1.10.22" % "provided" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-        "com.amazonaws" % "aws-java-sdk-s3" % "1.10.22" % "provided" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+        "com.amazonaws" % "aws-java-sdk-core" % "1.10.22" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+        "com.amazonaws" % "aws-java-sdk-s3" % "1.10.22" exclude("com.fasterxml.jackson.core", "jackson-databind"),
         "com.amazonaws" % "aws-java-sdk-sts" % "1.10.22" % "test" exclude("com.fasterxml.jackson.core", "jackson-databind"),
         // We require spark-avro, but avro-mapred must be provided to match Hadoop version.
         // In most cases, avro-mapred will be provided as part of the Spark assembly JAR.
@@ -175,6 +176,10 @@ object SparkRedshiftBuild extends Build {
         </developers>,
 
       bintrayReleaseOnPublish in ThisBuild := false,
+
+      assemblyShadeRules in assembly := Seq(
+        ShadeRule.rename("com.amazonaws.**" -> "shaded.@1").inAll
+      ),
 
       // Add publishing to spark packages as another step.
       releaseProcess := Seq[ReleaseStep](
