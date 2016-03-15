@@ -178,9 +178,27 @@ object SparkRedshiftBuild extends Build {
       bintrayReleaseOnPublish in ThisBuild := false,
 
       assemblyShadeRules in assembly := Seq(
-        ShadeRule.rename("com.amazonaws.**" -> "shaded.@1").inAll
+        ShadeRule.rename("org.apache.commons.**" -> "shadedapachecommons.@1").inAll,
+        ShadeRule.rename("org.apache.http.**" -> "shadedapachehttp.@1").inAll,
+        ShadeRule.rename("org.apache.avro.**" -> "shadedapacheaavro.@1").inAll,
+        ShadeRule.rename("com.amazonaws.**" -> "shadedaws.@1").inAll,
+        ShadeRule.rename("org.codehaus.**" -> "shadedcodehaus.@1").inAll,
+        ShadeRule.rename("org.joda.**" -> "shadedjoda.@1").inAll,
+        ShadeRule.rename("org.xerial.**" -> "shadedxerial.@1").inAll,
+        ShadeRule.rename("org.tukaani.**" -> "shadedtukaani.@1").inAll,
+        ShadeRule.rename("com.thoughtworks.**" -> "shadedthoughtworks.@1").inAll,
+        ShadeRule.rename("com.eclipsesource.**" -> "shadedeclipsesource.@1").inAll,
+        ShadeRule.zap("org.slf4j.**").inAll,
+        ShadeRule.zap("mime.**").inAll
       ),
-
+      assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+      assemblyMergeStrategy in assembly := {
+        case PathList("mime.types") =>
+            MergeStrategy.discard
+        case x =>
+            val oldStrategy = (assemblyMergeStrategy in assembly).value
+            oldStrategy(x)
+      },
       // Add publishing to spark packages as another step.
       releaseProcess := Seq[ReleaseStep](
         checkSnapshotDependencies,
